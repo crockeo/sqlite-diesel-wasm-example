@@ -1,0 +1,115 @@
+<!doctype html>
+
+<html>
+  <head>
+    <style>
+      html, body {
+        background: #333;
+        color: #fff;
+        font-family: sans-serif;
+      }
+
+      h1, h2, h3, h4, h5 {
+        margin: 0px;
+      }
+
+      input {
+        background: rgba(0, 0, 0, 0);
+        border-color: #555;
+        border-style: solid;
+        border-width: 1px;
+        color: #fff;
+        font-size: 1rem;
+        padding: 0.5rem;
+      }
+
+      input:focus {
+        outline: none;
+      }
+
+      button {
+        background: rgba(0, 0, 0, 0);
+        border-color: #555;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-style: solid;
+        border-width: 1px;
+        color: #fff;
+      }
+
+      button:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      button:active {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .todo-content {
+        padding-right: 0.5rem;
+      }
+
+      #todos li {
+        margin-bottom: 0.25rem;
+      }
+    </style>
+
+    <script type="application/javascript">
+      const worker = new Worker("worker.js", { type: "module" });
+      worker.onmessage = (msg) => {
+        if (msg.data.command == "todos") {
+          updateTodos(msg.data.todos);
+        } else {
+          console.log(`Unrecognized command: ${msg.data.command}`)
+        }
+      };
+
+      function updateTodos(todos) {
+        const todoDom = document.getElementById("todos");
+
+        const todoLis = [];
+        for (const todo of todos) {
+          const li = document.createElement("li");
+
+          const text = document.createElement("span");
+          text.className = "todo-content";
+          text.textContent = todo.text;
+          li.appendChild(text);
+
+          const button = document.createElement("button");
+          button.textContent = "delete";
+          button.addEventListener("click", function () {
+            worker.postMessage({ command: "delete", id: todo.id });
+          });
+          li.appendChild(button);
+
+          todoLis.push(li);
+        }
+        todoDom.replaceChildren(...todoLis);
+      }
+    
+      worker.postMessage({ command: "init" });
+
+      window.addEventListener("load", function () {
+        document.getElementById("new-todo-button").addEventListener("click", function (e) {
+          e.preventDefault();
+          const input = document.getElementById("new-todo-input");
+          if (!input.value) {
+            return;
+          }
+          worker.postMessage({ command: "new", text: input.value });
+          input.value = "";
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <h1>Todos</h1>
+    <input id="new-todo-input" placeholder="Todo" type="text" />
+    <button id="new-todo-button">Submit</button>
+
+    <ul id="todos">
+    </ul>
+  </body>
+</html>

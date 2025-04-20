@@ -1,8 +1,11 @@
 use diesel::prelude::*;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use sqlite_wasm_rs::sahpool_vfs::install as install_opfs_vfs;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 mod schema;
+
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::todos)]
@@ -36,13 +39,29 @@ pub struct Repo {
 }
 
 #[wasm_bindgen]
+pub async fn new_repo() -> Repo {
+    Repo::new().await
+}
+
 impl Repo {
-    #[wasm_bindgen(constructor)]
-    pub async fn new() -> Self {
-        install_opfs_vfs(None, true).await.unwrap();
+    async fn new() -> Self {
+        console_error_panic_hook::set_once();
+        install_opfs_vfs(None, true)
+            .await
+            .expect("Failed to set up OPFS VFS");
         Self {
-            conn: SqliteConnection::establish("testing-opfs-sahpool.db").unwrap(),
+            conn: SqliteConnection::establish("testing-opfs-sahpool.db")
+                .expect("Failed to open SQLite database."),
         }
+    }
+}
+
+#[wasm_bindgen]
+impl Repo {
+    pub fn migrate(&mut self) {
+        self.conn
+            .run_pending_migrations(MIGRATIONS)
+            .expect("Failed to run migrations");
     }
 
     pub fn put_todo(&mut self, todo_text: String) -> Todo {
@@ -58,14 +77,11 @@ impl Repo {
         todo
     }
 
-    pub fn update_todo(&mut self, todo_id: i32, todo_text: String) -> Todo {
+    pub fn delete_todo(&mut self, todo_id: i32) {
         use schema::todos::dsl::*;
-        let todo = diesel::update(todos.find(todo_id))
-            .set(text.eq(todo_text))
-            .returning(Todo::as_returning())
-            .get_result(&mut self.conn)
+        diesel::delete(todos.find(todo_id))
+            .execute(&mut self.conn)
             .unwrap();
-        todo
     }
 
     pub fn get_todos(&mut self) -> Vec<Todo> {
