@@ -28,6 +28,7 @@ Requires:
 ```shell
 just build  # build the WASM+JS files
 just serve  # serve the files
+# Navigate to `127.0.0.1:8000` in a recent-ish browser.
 ```
 
 ## License

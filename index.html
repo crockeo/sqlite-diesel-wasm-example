@@ -91,7 +91,7 @@
       worker.postMessage({ command: "init" });
 
       window.addEventListener("load", function () {
-        document.getElementById("new-todo-button").addEventListener("click", function (e) {
+        document.getElementById("new-todo-form").addEventListener("submit", function (e) {
           e.preventDefault();
           const input = document.getElementById("new-todo-input");
           if (!input.value) {
@@ -106,8 +106,10 @@
 
   <body>
     <h1>Todos</h1>
-    <input id="new-todo-input" placeholder="Todo" type="text" />
-    <button id="new-todo-button">Submit</button>
+    <form id="new-todo-form">
+      <input id="new-todo-input" placeholder="Todo" type="text" />
+      <button>Submit</button>
+    </form>
 
     <ul id="todos">
     </ul>
