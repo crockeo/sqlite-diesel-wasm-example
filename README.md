@@ -31,6 +31,16 @@ just serve  # serve the files
 # Navigate to `127.0.0.1:8000` in a recent-ish browser.
 ```
 
+## Caveats
+
+I haven't begun to consider the issues
+[documented in Notion's post on this subject](https://www.notion.com/blog/how-we-sped-up-notion-in-the-browser-with-wasm-sqlite).
+One looking to implement this in a production setting
+would likely need to implement
+the architecture they link out to
+[from Roy Hashimoto in this GitHub discussion](https://github.com/rhashimoto/wa-sqlite/discussions/81).
+If you don't you should expect SQLite DB corruption.
+
 ## License
 
 [MIT Open Source License](./LICENSE)
