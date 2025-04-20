@@ -10,7 +10,7 @@ build:
 dev:
     watchexec -w . -e rs -- just build
 
-server:
-    python3.13 -m http.server \
+serve:
+    python3 -m http.server \
         --bind=127.0.0.1 \
         --directory=.
